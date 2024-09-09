@@ -1,0 +1,32 @@
+<div class="split-screen">
+    <div class="login-container">
+      <h2>Register</h2>
+
+      <input
+        pInputText
+        id="username"
+        placeholder="Username"
+        aria-describedby="username-help"
+        [(ngModel)]="username"
+      />
+
+      <input
+        pInputText
+        id="username"
+        placeholder="Email"
+        aria-describedby="username-help"
+        [(ngModel)]="email"
+      />
+
+      <p-password
+        class="pass"
+        placeholder="Password"
+        [(ngModel)]="password"
+        [toggleMask]="true"
+      ></p-password>
+
+      <button mat-raised-button (click)="register()">Register</button>
+      <button mat-button (click)="navigateToLogin()">Login</button>
+    </div>
+
+</div>

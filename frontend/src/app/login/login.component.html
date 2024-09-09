@@ -1,0 +1,33 @@
+<div class="split-screen">
+
+  <h1 class="txt">Ai Powered Chat With Proof</h1>
+
+  <div class="login-container">
+    <h2>Login</h2>
+    <input
+      type="text"
+      placeholder="Email"
+      pInputText
+      [(ngModel)]="email"
+      class="user"
+    />
+    <p-password
+      class="pass"
+      [(ngModel)]="password"
+      placeholder="Password"
+      [toggleMask]="true"
+    ></p-password>
+    <div class="buttons">
+      <button mat-raised-button label="Submit" (click)="login()">Submit</button>
+      <p-toast key="tl"></p-toast>
+      <p-toast key="t2"></p-toast>
+      <p-toast key="t3"></p-toast>
+
+
+
+      <button mat-button label="Register" (click)="navigateToRegister()">
+        Register
+      </button>
+    </div>
+  </div>
+</div>
