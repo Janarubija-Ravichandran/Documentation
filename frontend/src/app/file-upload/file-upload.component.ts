@@ -10,6 +10,7 @@ import { MaterialModule } from '../material-module';
 import jsPDF from 'jspdf';
 import { MessageService } from 'primeng/api';
 
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './file-upload.component.html',
@@ -17,50 +18,22 @@ import { MessageService } from 'primeng/api';
   providers: [MessageService]
 })
 export class FileUploadComponent implements OnInit {
-  @ViewChild('schemeFileInput') schemeFileInput!: ElementRef;
-  @ViewChild('ideaFileInput') ideaFileInput!: ElementRef;
-  schemeFile: { file: File, uploadedTime: Date } | null = null;
-  ideaFile: { file: File, uploadedTime: Date } | null = null;
-  urlList: string = '';
+
   progress: number = 0;
-  uploadedFiles: { file: File, uploadedTime: Date }[] = [];
   userId: string = '123456';
   email: string | null = '';
   isSidenavOpen = false;
   isLoading = false;
   displayDialog: boolean = false;
-  fileName: string = '';
-
-  brdForm: FormGroup;
-  languages = [
-    { label: 'English', value: 'English' },
-    { label: 'Hindi', value: 'Hindi' },
-    { label: 'chinese', value: 'chinese' },
-    { label: 'French', value: 'French' },
-    { label: 'Spanish', value: 'Spanish' },
-    {label:'malayalam',value:'malayalam'},
-
-    { label: 'Telugu', value: 'Telugu' },
-    { label: 'Gujarati', value: 'Gujarati' },
-    { label: 'Kannada', value: 'Kannada' },
-    { label: 'Urdu', value: 'Urdu' },
-    { label: 'Sanskrit', value: 'Sanskrit' },
-    { label: 'Turkish', value: 'Turkish' },
-    { label: 'Arabic', value: 'Arabic' },
-    { label: 'German', value: 'German' },
-    { label: 'Portuguese', value: 'Portuguese' },
-    { label: 'Russian', value: 'Russian' },
-    { label: 'Japanese', value: 'Japanese' },
-    { label: 'Korean', value: 'Korean' },
-    { label: 'Italian', value: 'Italian' },
-    { label: 'Bengali', value: 'Bengali' },
-    { label: 'Marathi', value: 'Marathi' },
-  ];
-  brdContent: string = '';
-  isEditing = false;
-  editableContent: string='';
-  downloadUrl: string | null = null;
   public apiUrl = environment.LOGIN_BASEURL;
+
+  //doc
+  userQuery: string = '';
+  showChat: boolean = false;
+  messages: Array<{ query: string; answer: string; documents: string[] }> = [];
+  @ViewChild('chatScroll') private chatScroll!: ElementRef;
+  @ViewChild('cardContainer', { static: false }) cardContainer!: ElementRef;
+
 
   constructor(
     public dialog: MatDialog,
@@ -71,10 +44,7 @@ export class FileUploadComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private messageService: MessageService
   ) {
-    this.brdForm = this.fb.group({
-      summary: ['', Validators.required],
-      language: ['English', Validators.required]
-    });
+
   }
 
   ngOnInit(): void {
@@ -82,88 +52,6 @@ export class FileUploadComponent implements OnInit {
     if (!this.email) {
       this.router.navigate(['/login']);
     }
-    this.editableContent = this.brdContent;
-  }
-  onSchemeFileChange(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.schemeFile = { file, uploadedTime: new Date() };
-      this.uploadFile(file);
-    }
-    this.schemeFileInput.nativeElement.value = '';
-  }
-  onIdeaFileChange(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      this.ideaFile = { file, uploadedTime: new Date() };
-      this.uploadFile(file);
-    }
-    this.ideaFileInput.nativeElement.value = '';
-  }
-  removeSchemeFile(): void {
-    this.schemeFile = null;
-    this.progress = 0;
-    this.schemeFileInput.nativeElement.value = '';
-  }
-  removeIdeaFile(): void {
-    this.ideaFile = null;
-    this.progress = 0;
-    this.ideaFileInput.nativeElement.value = '';
-  }
-  uploadFile(file: File): void {
-    this.progress = 0;
-    const interval = setInterval(() => {
-      if (this.progress >= 100) {
-        clearInterval(interval);
-      } else {
-        this.progress += 10;
-      }
-    }, 200);
-  }
-
-
-
-  processFiles(): void {
-    if (this.schemeFile && this.ideaFile) {
-      this.spinner.show();
-
-      const formData = new FormData();
-      formData.append('client_file', this.ideaFile.file);
-      formData.append('scheme_file', this.schemeFile.file);
-      formData.append('language', this.brdForm.value.language);
-
-      this.http.post(`${this.apiUrl}/generate-grant`, formData).subscribe(
-        (response: any) => {
-          this.brdContent = response.proposal;
-          this.spinner.hide();
-        },
-        error => {
-          console.error('Error generating grant proposal:', error);
-          this.spinner.hide();
-        }
-      );
-    } else {
-      alert('Please upload both files before processing.');
-    }
-  }
-
-  generateGW(): void {
-
-
-    this.spinner.show();
-
-    const formData = {
-      grant_proposal: this.brdContent,
-      language: this.brdForm.value.language
-    };
-
-
-  }
-
-
-  updateButtonStates(): void {
-    const processButton = document.querySelector('.process') as HTMLButtonElement;
-    processButton.disabled = this.uploadedFiles.length !== 2;
   }
 
   toggleSidenav(): void {
@@ -190,109 +78,76 @@ export class FileUploadComponent implements OnInit {
     // Navigate to the login page after showing the message
     setTimeout(() => {
       this.router.navigate(['/login']);
-    }, 1000);  // Delay for the toast message before redirection
+    }, 500);
   }
 
-  openDownloadDialog(): void {
-    this.displayDialog = true;
-  }
-  onCancel(): void {
-    // Close the dialog without downloading
-    this.displayDialog = false;
-    this.fileName = ''; // Clear the input field
-  }
-  toggleEdit(): void {
-    if (this.isEditing) {
-      this.brdContent = this.editableContent;
-    } else {
-      this.editableContent = this.brdContent;
-    }
-    this.isEditing = !this.isEditing;
-  }
+//doc
 
-  downloadGW(): void {
-    if (!this.fileName || !this.fileName.trim()) {
-      alert('Please provide a valid file name.');
-      return;
-    }
-
-    const data = this.brdContent;
-
-    // Download the text file
-    const blob = new Blob([data], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${this.fileName.trim()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    window.URL.revokeObjectURL(url);
-
-    // Create and download the PDF
-    const doc = new jsPDF();
-    const margin = 10;
-    const pageHeight = doc.internal.pageSize.height;
-    const lines: string[] = doc.splitTextToSize(data, doc.internal.pageSize.width - 2 * margin);
-
-    let cursorY = margin;
-    lines.forEach((line: string) => {
-      if (cursorY + 10 > pageHeight) {
-        doc.addPage();
-        cursorY = margin;
-      }
-      doc.text(line, margin, cursorY);
-      cursorY += 10;
-    });
-
-    // doc.save(`${this.fileName.trim()}.pdf`);
-
-    // Show success toast message
-    this.messageService.add({
-      key: 'tl',
-      severity: 'success',
-      summary: 'File Download Successful',
-      detail: `Your file "${this.fileName.trim()}" has been downloaded.`
-    });
-
-    // Close the dialog and clear fileName
-    this.displayDialog = false;
-    this.fileName = '';
-  }
-
- 
-
-
-  onDragOver(event: any) {
-    event.preventDefault();
-  }
-
-  onDrop(event: any) {
-    event.preventDefault();
-    const files = event.dataTransfer.files;
-    this.handleFiles(files);
-  }
-
-
-
-  private handleFiles(files: FileList): void {
-    const newFiles = Array.from(files);
-
-    if (newFiles.length + this.uploadedFiles.length > 2) {
-      alert('You can upload a maximum of 2 files.');
-      return;
-    }
-
-    newFiles.forEach(file => {
-      if (!this.uploadedFiles.some(f => f.file.name === file.name)) {
-        this.uploadedFiles.push({ file, uploadedTime: new Date() });
-        this.uploadFile(file);
-      }
-    });
-
-    this.updateButtonStates();
-  }
-
-
-
+startChat() {
+  this.showChat = true;
 }
+
+sendQuery() {
+  if (this.userQuery.trim() === '') {
+    return;
+  }
+
+  // Mock data to simulate database answer and related documents
+  const answer = this.getAnswerForQuery(this.userQuery);
+  const documents = this.getRelatedDocuments(this.userQuery);
+
+  // Add the message with multiple documents to the messages array
+  this.messages.push({
+    query: this.userQuery,
+    answer: answer,
+    documents: documents.slice(0, 4) // Max 4 documents
+  });
+
+  // Clear the input field
+  this.userQuery = '';
+
+  // Scroll to the bottom of the chat
+  setTimeout(() => this.scrollToBottom(), 100);
+}
+
+getAnswerForQuery(query: string): string {
+  // Simulate answer from a database (replace with actual backend call)
+  return 'This is a mock answer for your query: ' + query;
+}
+
+getRelatedDocuments(query: string): string[] {
+  // Simulating related documents (replace this with actual backend logic)
+  return [
+    'assets/document1.pdf',
+    'assets/document2.pdf',
+    'assets/document3.pdf',
+    'assets/document4.pdf',
+    'assets/document4.pdf'
+,    'assets/document4.pdf'
+,    'assets/document4.pdf'
+
+  ]; // Can have up to 4 documents
+}
+scrollToBottom() {
+  this.chatScroll.nativeElement.scrollTop = this.chatScroll.nativeElement.scrollHeight;
+}
+
+scrollLeft() {
+  this.cardContainer.nativeElement.scrollBy({
+    left: -200, // Adjust the scroll amount as needed
+    behavior: 'smooth'
+  });
+}
+
+scrollRight() {
+  this.cardContainer.nativeElement.scrollBy({
+    left: 200, // Adjust the scroll amount as needed
+    behavior: 'smooth'
+  });
+}
+  }
+
+
+
+
 

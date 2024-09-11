@@ -25,7 +25,7 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
 import { ToastModule } from 'primeng/toast';
 import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
-
+import { RippleModule } from 'primeng/ripple';
 @NgModule({
   declarations: [
     AppComponent,
@@ -34,6 +34,7 @@ import { MessageService } from 'primeng/api';
     FileUploadComponent,
   ],
   imports: [
+    RippleModule,
     DialogModule,
     ToastModule,
     AvatarGroupModule,
